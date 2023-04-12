@@ -1,20 +1,63 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="UTF-8">
-  <title>Chat privado con Socket.IO</title>
+  <title>Chat</title>
   <style>
+    /* Estilos generales */
     body {
       background-color: #f5f5f5;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    
-    h1, h2 {
+
+    /* Estilos del encabezado */
+    h1 {
+      color: #fff;
+      background-color: #0078ff;
+      padding: 20px;
+      margin: 0;
+    }
+
+    /* Estilos de la lista de usuarios */
+    #users {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    #users h2 {
       color: #4e4e4e;
       margin-top: 0;
       margin-bottom: 10px;
     }
-    
+
+    #users ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    #users li {
+      display: inline-block;
+      margin-right: 10px;
+      padding: 5px 10px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      font-size: 14px;
+      color: #666;
+      background-color: #f1f1f1;
+    }
+
+    #users li.active {
+      border-color: #0078ff;
+      color: #0078ff;
+      background-color: #e3f2fd;
+    }
+
+    /* Estilos del chat */
     #chat {
       background-color: #fff;
       border: 1px solid #ccc;
@@ -22,85 +65,90 @@
       padding: 20px;
       margin-top: 20px;
     }
-    
-    #messages p {
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 5px;
-      box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
-      max-width: 70%;
-    }
-    
-    #messages .sent {
-      background-color: #e3f2fd;
-      align-self: flex-end;
-    }
-    
-    #messages .received {
-      background-color: #f1f1f1;
-      align-self: flex-start;
-    }
-    
-    label {
-      color: #666;
-      display: block;
-      margin-bottom: 5px;
-    }
-    
-    input[type=text] {
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      font-size: 14px;
-      padding: 8px;
-      width: 100%;
+
+    #chat h2 {
+      color: #4e4e4e;
+      margin-top: 0;
       margin-bottom: 10px;
     }
-    
-    button[type=submit] {
-      background-color: #4caf50;
+
+    #messages {
+      overflow-y: scroll;
+      max-height: 300px;
+      margin-bottom: 10px;
+    }
+
+    #messages p {
+      background-color: #f1f1f1;
+      color: #333;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 20px;
+      box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+      max-width: 80%;
+      position: relative;
+    }
+
+    #messages p:before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: -10px;
+      border-style: solid;
+      border-width: 10px 10px 10px 0;
+      border-color: transparent #f1f1f1 transparent transparent;
+      transform: translateY(-50%);
+    }
+
+    #message-form {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    #message-form label {
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    #message-form input[type=text] {
       border: none;
-      border-radius: 5px;
-      color: #fff;
-      font-size: 16px;
-      padding: 10px 20px;
-      cursor: pointer;
-    }
-    
-    button[type=submit]:hover {
-      background-color: #3e8e41;
-    }
-    
-    #users {
-      background-color: #fff;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      padding: 20px;
-      margin-top: 20px;
-      max-width: 30%;
-    }
-    
-    #users h2 {
-      margin-top: 0;
-    }
-    
-    #users ul {
-      list-style-type: none;
-      margin: 0;
-      padding: 0;
-    }
-    
-    #users li {
       border-bottom: 1px solid #ccc;
       padding: 10px;
+      margin-bottom: 10px;
+      font-size: 14px;
     }
-    
-    #users li:last-child {
-      border-bottom: none;
+
+    #message-form button[type=submit] {
+      background-color: #0078ff;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 10px 20px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    #message-form button[type=submit]:hover {
+      background-color: #0066cc;
+    }
+
+    .sent {
+      background-color: #F2F2F2;
+      color: black;
+      text-align: right;
+    }
+
+    .received {
+      background-color: #4CAF50;
+      color: white;
+      text-align: left;
     }
   </style>
 </head>
+
 <body>
-  <h1>Chat privado con Socket.IO</h1>
+  <h1>Chatoski</h1>
 
   <div id="users">
     <h2>Usuarios conectados:</h2>
@@ -112,41 +160,54 @@
     <form id="message-form">
       <label for="recipient-input">Destinatario:</label>
       <input type="text" id="recipient-input" required>
+      <div id="messages"></div>
       <label for="message-input">Mensaje:</label>
       <input type="text" id="message-input" required>
       <button type="submit">Enviar</button>
     </form>
-    <div id="messages"></div>
+
+
   </div>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io('http://localhost:3000');
-    
+
     $('#message-form').submit(event => {
       event.preventDefault();
-    
+
       const recipient = $('#recipient-input').val();
       const content = $('#message-input').val();
       const message = { recipient, content };
-    
+
       socket.emit('message', message);
-    
+
       $('#message-input').val('');
+
+      // Agregar el mensaje enviado por el cliente emisor al chat
+      const sender = 'Yo';
+      const sentMessage = { sender, content };
+      $('#messages').append($('<p>').text(sentMessage.content));
     });
-    
+
     socket.on('message', message => {
       console.log(message);
-      $('#messages').append($('<p>').text(message.content));
+      const messageElement = $('<p>').text(message.content);
+      if (message.sender === 'Yo') {
+        messageElement.addClass('sent');
+      } else {
+        messageElement.addClass('received');
+      }
+      $('#messages').append(messageElement);
     });
-    
+
     socket.on('connect', () => {
       console.log('Conectado al servidor Socket.IO');
-      const username = prompt('Por favor, ingresa tú nombre de usuario:');
+      const username = prompt('Por favor, ingrese su nombre de usuario:');
       socket.emit('join', username);
     });
-    
+
     socket.on('users', users => {
       console.log(users);
       $('#users ul').empty();
@@ -156,4 +217,5 @@
     });
   </script>
 </body>
+
 </html>
